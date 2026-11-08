@@ -57,7 +57,4 @@ Bez wymaganej konfiguracji uwierzytelnienia dostęp produkcyjny jest zamknięty.
 
 Repozytorium zawiera kod, migracje i testy. Lokalne bazy, eksporty, zrzuty ekranu oraz sekrety nie są częścią repozytorium. Pełną kopię danych można pobrać z aplikacji; kopie zawierają prywatne informacje finansowe i należy je przechowywać poza publicznym repozytorium.
 
-- [Specyfikacja](SPECYFIKACJA.md)
-- [Zasady interakcji](UX-CONTRACT.md)
-- [Projekt interfejsu](DESIGN.md)
 - [Bezpieczeństwo](SECURITY.md)

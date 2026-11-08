@@ -1,0 +1,26 @@
+node_modules/
+dist/
+.wrangler/
+.local/
+.env
+.env.*
+.dev.vars
+*.tsbuildinfo
+test-results/
+playwright-report/
+*.key
+*.pem
+.pnpm-store/
+.DS_Store
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.log
+.dev.vars.*
+premium-audit.json
+
+# Prywatne ustalenia projektu pozostają lokalnie.
+SPECYFIKACJA.md
+UX-CONTRACT.md
+DESIGN.md
