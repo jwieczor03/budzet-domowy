@@ -32,42 +32,71 @@ export default function SubscriptionSummary({
   const total = rows.reduce((sum, r) => sum + r.amount, 0);
   return (
     <>
-      <div
-        className={`subscription-summary-row ${count === rows.length ? "is-done" : ""}`}
-      >
-        {transfer && (
-          <button
-            className={`settle-check ${count === rows.length ? "checked" : ""}`}
-            disabled={busy || total === 0 || period > currentPeriod()}
-            aria-label={`${count === rows.length ? "Cofnij przelew" : "Oznacz przelew"}: Subskrypcje`}
-            aria-pressed={count === rows.length}
-            onClick={() => transfer(count !== rows.length)}
-          >
-            {count === rows.length ? <Check size={17} /> : <span />}
-          </button>
-        )}
-        <button
-          className={`subscription-summary ${compact ? "is-compact" : ""} ${count === rows.length ? "is-done" : ""}`}
-          onClick={() => setOpened(true)}
-          aria-label={`Subskrypcje — ${periodLabel(period)}. Pokaż szczegóły`}
+      {compact ? (
+        <div
+          className={`subscription-summary-row ${count === rows.length ? "is-done" : ""}`}
         >
-          <Layers size={compact ? 15 : 20} aria-hidden="true" />
-          <span className="subscription-summary-name">
+          <button
+            className={`subscription-summary is-compact ${count === rows.length ? "is-done" : ""}`}
+            onClick={() => setOpened(true)}
+            aria-label={`Subskrypcje — ${periodLabel(period)}. Pokaż szczegóły`}
+          >
+            <Layers size={15} aria-hidden="true" />
+            <span className="subscription-summary-name">
+              <strong>Subskrypcje</strong>
+            </span>
+            <Money value={total} />
+            <ChevronRight size={16} aria-hidden="true" />
+          </button>
+        </div>
+      ) : (
+        <div
+          className={`expense-row subscription-budget-row ${count === rows.length ? "is-done" : ""}`}
+        >
+          {transfer && (
+            <button
+              className={`settle-check ${count === rows.length ? "checked" : ""}`}
+              disabled={busy || total === 0 || period > currentPeriod()}
+              aria-label={`${count === rows.length ? "Cofnij przelew" : "Oznacz przelew"}: Subskrypcje`}
+              aria-pressed={count === rows.length}
+              onClick={() => transfer(count !== rows.length)}
+            >
+              {count === rows.length ? <Check size={17} /> : <span />}
+            </button>
+          )}
+          <button
+            className="row-name subscription-open"
+            onClick={() => setOpened(true)}
+            aria-label={`Subskrypcje — ${periodLabel(period)}. Pokaż szczegóły`}
+          >
             <strong>Subskrypcje</strong>
-            {!compact && (
-              <small>
-                {count === rows.length
-                  ? "Przelano na konto subskrypcji"
-                  : count > 0
-                    ? "Częściowo przekazane — uzupełnij przelew"
-                    : "Do przelania na konto subskrypcji"}
-              </small>
-            )}
-          </span>
-          <Money value={total} />
-          <ChevronRight size={16} aria-hidden="true" />
-        </button>
-      </div>
+            <span className="row-meta">
+              <span>Subskrypcje</span>
+              <span>Stała</span>
+            </span>
+          </button>
+          <div className="row-amount">
+            <Money value={total} />
+            <span className={count === rows.length ? "status-done" : "muted"}>
+              {count === rows.length
+                ? "Przelano na konto"
+                : count > 0
+                  ? "Częściowo przekazane"
+                  : "Do przelania"}
+            </span>
+          </div>
+          <div className="row-actions">
+            <button
+              className="icon-button"
+              aria-label="Szczegóły subskrypcji"
+              title="Pokaż szczegóły"
+              onClick={() => setOpened(true)}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
       {opened && (
         <Modal
           title="Subskrypcje"

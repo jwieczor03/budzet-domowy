@@ -2930,3 +2930,20 @@ input[type="radio"] {
 .subscription-summary-row > .settle-check {
   flex-shrink: 0;
 }
+
+.subscription-open {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+}
+.subscription-budget-row .row-actions {
+  min-width: 64px;
+}
+@media (max-width: 600px) {
+  .subscription-budget-row .row-actions {
+    min-width: 36px;
+  }
+}
