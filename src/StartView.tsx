@@ -1,3 +1,4 @@
+import SubscriptionSummary, { isSubscription } from "./SubscriptionSummary";
 import { Check, Minus } from "lucide-react";
 import {
   balances,
@@ -127,34 +128,55 @@ export default function StartView({ state }: { state: State }) {
                   <h4>Wydatki i cele</h4>
                   {rows.length ? (
                     <ul>
-                      {rows.map((r) => {
-                        const done = state.settlements.some(
-                          (s) => s.row.id === r.id,
-                        );
-                        return (
-                          <li key={r.id} className={done ? "is-done" : ""}>
-                            <span className="start-row-name">
-                              <span
-                                className="start-status"
-                                aria-label={
-                                  done ? "Rozdysponowane" : "Do rozdysponowania"
-                                }
-                              >
-                                {done ? (
-                                  <Check size={14} />
-                                ) : (
-                                  <Minus size={14} />
+                      {rows.some(isSubscription) && (
+                        <li className="subscription-plan-row">
+                          <SubscriptionSummary
+                            rows={rows.filter(isSubscription)}
+                            state={state}
+                            period={period}
+                            compact
+                          />
+                        </li>
+                      )}
+                      {rows
+                        .filter((r) => !isSubscription(r))
+                        .sort(
+                          (a, b) =>
+                            Number(!!b.templateId) - Number(!!a.templateId),
+                        )
+                        .map((r, index, visible) => {
+                          const done = state.settlements.some(
+                            (s) => s.row.id === r.id,
+                          );
+                          return (
+                            <li
+                              key={r.id}
+                              className={`${done ? "is-done" : ""} ${!r.templateId && (index === 0 ? rows.some(isSubscription) : !!visible[index - 1].templateId) ? "start-oneoff" : ""}`}
+                            >
+                              <span className="start-row-name">
+                                <span
+                                  className="start-status"
+                                  aria-label={
+                                    done
+                                      ? "Rozdysponowane"
+                                      : "Do rozdysponowania"
+                                  }
+                                >
+                                  {done ? (
+                                    <Check size={14} />
+                                  ) : (
+                                    <Minus size={14} />
+                                  )}
+                                </span>
+                                {r.name}
+                                {r.note && (
+                                  <NoteTooltip name={r.name} note={r.note} />
                                 )}
                               </span>
-                              {r.name}
-                              {r.note && (
-                                <NoteTooltip name={r.name} note={r.note} />
-                              )}
-                            </span>
-                            <Money value={r.amount} />
-                          </li>
-                        );
-                      })}
+                              <Money value={r.amount} />
+                            </li>
+                          );
+                        })}
                     </ul>
                   ) : (
                     <p className="start-empty">Brak pozycji w planie.</p>

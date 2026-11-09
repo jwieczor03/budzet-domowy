@@ -550,6 +550,16 @@ export function rowsForPeriod(state, period) {
   }
   return result;
 }
+export function isSubscription(row) {
+  return (
+    !!row.templateId && row.category === "subskrypcje" && row.kind === "expense"
+  );
+}
+export function subscriptionRows(state, period) {
+  return rowsForPeriod(state, period).filter(
+    (r) => r.source === "personal" && isSubscription(r),
+  );
+}
 export function summary(state, period) {
   const rows = rowsForPeriod(state, period);
   const incomes = state.incomes.filter((i) => i.period === period);
@@ -770,6 +780,13 @@ const actionSchemas = {
       rowId: id,
       period: periodSchema,
       scope: z.enum(["one", "future"]),
+    })
+    .strict(),
+  settleSubscriptions: z
+    .object({
+      type: z.literal("settleSubscriptions"),
+      period: periodSchema,
+      settled: z.boolean(),
     })
     .strict(),
   settle: z
@@ -1622,6 +1639,32 @@ export function applyAction(inputState, input, operationId, now = new Date()) {
       }
     } else state.expenses = state.expenses.filter((e) => e.id !== row.id);
     label = "Usunięto pozycję planu";
+  } else if (action.type === "settleSubscriptions") {
+    const subscriptions = subscriptionRows(state, action.period);
+    requireThat(subscriptions.length > 0, "Brak subskrypcji w tym okresie.");
+    if (action.settled) {
+      requireThat(
+        action.period <= currentPeriod(day),
+        "Przyszły okres jest planem. Rozliczysz go po rozpoczęciu.",
+      );
+      subscriptions.forEach((row, index) => {
+        if (
+          row.amount > 0 &&
+          !state.settlements.some((s) => s.row.id === row.id)
+        )
+          state.settlements.push({
+            id: `${operationId.slice(0, 80)}_sub_${index}`,
+            row,
+            date: day,
+          });
+      });
+    } else {
+      const ids = new Set(subscriptions.map((r) => r.id));
+      state.settlements = state.settlements.filter((s) => !ids.has(s.row.id));
+    }
+    label = action.settled
+      ? "Przelano środki na subskrypcje"
+      : "Cofnięto przelew na subskrypcje";
   } else if (action.type === "settle") {
     const row = rowAt(action.rowId, action.period);
     const existing = state.settlements.find((s) => s.row.id === row.id);

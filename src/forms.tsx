@@ -93,7 +93,7 @@ export function ExpenseForm({
       : existing?.dueDate?.slice(8).replace(/^0/, "") || "",
   );
   const [note, setNote] = useState(existing?.note || "");
-  const household = existing?.household ?? shared;
+  const [household, setHousehold] = useState(existing?.household ?? shared);
   const [customCategory, setCustomCategory] = useState("");
   const categoryOptions = {
     ...categories,
@@ -211,6 +211,16 @@ export function ExpenseForm({
           value={customCategory}
           onChange={(e) => change(() => setCustomCategory(e.target.value))}
         />
+      )}
+      {scheduleForm && category === "subskrypcje" && source === "personal" && (
+        <Select
+          label="Rodzaj subskrypcji"
+          value={household ? "shared" : "private"}
+          onChange={(v) => change(() => setHousehold(v === "shared"))}
+        >
+          <option value="private">Prywatna</option>
+          <option value="shared">Wspólna — moja kwota</option>
+        </Select>
       )}
       {scheduleForm && (
         <Field

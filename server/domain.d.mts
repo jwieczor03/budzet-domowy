@@ -64,3 +64,6 @@ export function householdForPeriod(
 
 export function patrykOwnRows(state: State, period: string): PatrykExpense[];
 export function patrykSavingsBalance(state: State): number;
+
+export function isSubscription(row: Row): boolean;
+export function subscriptionRows(state: State, period: string): Row[];

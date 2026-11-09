@@ -592,3 +592,80 @@ test("przejęty harmonogram z historycznym wydatkiem zachowuje odtwarzalną kopi
   assert.equal(state.recurring.length, 1);
   assert.deepEqual(validateBackup(exportBackup(state)), state);
 });
+
+test("jeden przelew rozlicza prywatne i wspólne subskrypcje atomowo, bez obciążania innych pozycji", () => {
+  let s = emptyState();
+  s = expense(s, row("private_sub", 3700, { category: "subskrypcje" }), true);
+  s = expense(
+    s,
+    row("shared_sub", 5000, { category: "subskrypcje", household: true }),
+    true,
+  );
+  s = expense(s, row("other", 13000), true);
+  s = expense(s, row("oneoff_sub", 1200, { category: "subskrypcje" }));
+  s = apply(s, { type: "settleSubscriptions", period, settled: true });
+  assert.equal(s.settlements.length, 2);
+  assert.equal(summary(s, period).done, 8700);
+  assert.equal(summary(s, period).planned, 22900);
+  assert.equal(new Set(s.settlements.map((p) => p.id)).size, 2);
+  const again = apply(s, {
+    type: "settleSubscriptions",
+    period,
+    settled: true,
+  });
+  assert.equal(again.settlements.length, 2);
+  assert.deepEqual(balances(again), balances(emptyState()));
+  assert.deepEqual(validateBackup(exportBackup(again)), again);
+  const undo = apply(again, {
+    type: "settleSubscriptions",
+    period,
+    settled: false,
+  });
+  assert.equal(summary(undo, period).done, 0);
+  assert.equal(undo.settlements.length, 0);
+});
+
+test("grupowy przelew zachowuje wcześniej rozliczoną historię i nie dotyka wspólnego konta", () => {
+  let s = emptyState();
+  s = expense(s, row("sub", 5000, { category: "subskrypcje" }), true);
+  s = expense(
+    s,
+    row("sub2", 3000, { category: "subskrypcje", household: true }),
+    true,
+  );
+  s = expense(
+    s,
+    row("joint", 2000, {
+      category: "subskrypcje",
+      source: "shared",
+      household: true,
+    }),
+    true,
+  );
+  const first = rowsForPeriod(s, period).find((r) => r.name === "sub");
+  s = apply(s, { type: "settle", rowId: first.id, period, settled: true });
+  const original = structuredClone(s.settlements[0]);
+  s = apply(s, { type: "settleSubscriptions", period, settled: true });
+  assert.deepEqual(s.settlements[0], original);
+  assert.equal(s.settlements.length, 2);
+  assert.equal(balances(s).shared, 0);
+  assert.equal(summary(s, period).done, 8000);
+  assert.throws(
+    () =>
+      apply(s, {
+        type: "settleSubscriptions",
+        period: "2026-12",
+        settled: true,
+      }),
+    /Przyszły/,
+  );
+  assert.throws(
+    () =>
+      apply(emptyState(), {
+        type: "settleSubscriptions",
+        period,
+        settled: true,
+      }),
+    /Brak subskrypcji/,
+  );
+});

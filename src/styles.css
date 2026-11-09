@@ -2820,3 +2820,113 @@ input[type="radio"] {
 .start-plan footer {
   margin-top: auto;
 }
+
+.subscription-summary {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  text-align: left;
+}
+.subscription-summary:hover {
+  background: var(--background);
+}
+.subscription-summary.is-done {
+  background: var(--mint);
+}
+.subscription-summary-name {
+  flex: 1;
+  min-width: 0;
+}
+.subscription-summary-name small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 5px;
+}
+.subscription-summary > .money {
+  flex-shrink: 0;
+}
+.subscription-summary.is-compact {
+  padding: 10px 4px;
+  gap: 5px;
+  font-size: 13px;
+}
+.subscription-summary.is-compact > .money {
+  font-size: 12px;
+}
+.expense-section-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  margin: 20px 0 8px;
+}
+.one-off-section {
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+  padding-top: 4px;
+}
+.subscription-details {
+  padding: 0 26px 20px;
+}
+.subscription-details section h3,
+.subscription-catalogue-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 24px 0 10px;
+}
+.subscription-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+.subscription-detail-row .row-name {
+  flex: 1;
+}
+.subscription-detail-row > .money {
+  flex-shrink: 0;
+}
+@media (max-width: 600px) {
+  .subscription-summary {
+    gap: 8px;
+  }
+  .subscription-summary-name small {
+    font-size: 11px;
+  }
+  .subscription-details {
+    padding-inline: 18px;
+  }
+}
+.start-plan li.subscription-plan-row {
+  display: block;
+  padding: 0;
+}
+.start-plan li.start-oneoff {
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.subscription-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.subscription-summary-row > .subscription-summary {
+  flex: 1;
+  min-width: 0;
+}
+.subscription-summary-row.is-done {
+  background: var(--mint);
+}
+.subscription-summary-row > .settle-check {
+  flex-shrink: 0;
+}

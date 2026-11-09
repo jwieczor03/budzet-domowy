@@ -1,3 +1,4 @@
+import SubscriptionSummary, { isSubscription } from "./SubscriptionSummary";
 import { useState } from "react";
 import {
   ArrowDownLeft,
@@ -182,6 +183,52 @@ export default function BudgetView({
       })}
     </div>
   );
+  const groupedRows = (items: Row[]) => {
+    const groupPeriod = items[0]?.period || period;
+    const subscriptions = items.some(isSubscription)
+      ? rowsForPeriod(state, groupPeriod).filter(
+          (r) => r.source === "personal" && isSubscription(r),
+        )
+      : [];
+    const fixed = items.filter((r) => r.templateId && !isSubscription(r));
+    const oneOff = items.filter((r) => !r.templateId);
+    return (
+      <>
+        {(fixed.length > 0 || subscriptions.length > 0) && (
+          <section aria-label="Stałe wydatki">
+            <h3 className="expense-section-label">Stałe wydatki</h3>
+            {renderRows(fixed)}
+            <SubscriptionSummary
+              rows={subscriptions}
+              state={state}
+              period={items[0]?.period || period}
+              busy={busy}
+              transfer={(settled) => {
+                void act({
+                  type: "settleSubscriptions",
+                  period: groupPeriod,
+                  settled,
+                }).catch(() => {
+                  /* Shared error banner allows retry. */
+                });
+              }}
+            />
+          </section>
+        )}
+        {oneOff.length > 0 && (
+          <section
+            className={
+              fixed.length || subscriptions.length ? "one-off-section" : ""
+            }
+            aria-label="Tylko w tym okresie"
+          >
+            <h3 className="expense-section-label">Tylko w tym okresie</h3>
+            {renderRows(oneOff)}
+          </section>
+        )}
+      </>
+    );
+  };
   const list = rows
     .filter((r) =>
       page === "home"
@@ -189,14 +236,21 @@ export default function BudgetView({
         : r.source === "personal",
     )
     .filter((r) => {
-      const done =
-        r.amount === 0 || state!.settlements.some((s) => s.row.id === r.id);
+      const done = isSubscription(r)
+        ? rows
+            .filter((s) => s.source === "personal" && isSubscription(s))
+            .every(
+              (s) =>
+                s.amount === 0 ||
+                state.settlements.some((p) => p.row.id === s.id),
+            )
+        : r.amount === 0 || state!.settlements.some((s) => s.row.id === r.id);
       return (
         (filter === "all" ||
           (filter === "pending" && !done) ||
           (filter === "done" && done) ||
           (filter === "fixed" && !!r.templateId)) &&
-        `${r.name} ${r.note}`
+        `${r.name} ${r.note} ${isSubscription(r) ? "subskrypcje" : ""}`
           .toLocaleLowerCase("pl")
           .includes(query.toLocaleLowerCase("pl"))
       );
@@ -260,7 +314,11 @@ export default function BudgetView({
                 </h2>
                 <span>Bez przenoszenia między okresami</span>
               </div>
-              {renderRows(late)}
+              {[...new Set(late.map((r) => r.period))].sort().map((p) => (
+                <div key={p}>
+                  {groupedRows(late.filter((r) => r.period === p))}
+                </div>
+              ))}
             </section>
           )}
           <div className="content-columns">
@@ -429,7 +487,7 @@ export default function BudgetView({
                   </div>
                 </div>
                 {list.length ? (
-                  renderRows(list)
+                  groupedRows(list)
                 ) : (
                   <Empty
                     title={
